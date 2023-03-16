@@ -9,5 +9,5 @@ server:
 spring:
   mustache:
     servlet:
-      allow-session-override: true
+      expose-session-attributes: true
 
