@@ -38,6 +38,11 @@ public class UserController {
         return "loginForm";
     }
 
+    @GetMapping("/")
+    public String mainForm() {
+        return "mainForm";
+    }
+
     @GetMapping("/callback")
     public <T> String callback(String code) throws JsonProcessingException {
 
@@ -80,12 +85,15 @@ public class UserController {
 
         // 6. 해당 email로 회원가입되어 있는 user 정보가 있는지 DB 조회 (x)
         if (user != null) {
+            System.out.println("디버그 : 회원정보가 있어서 로그인을 바로 진행합니다.");
             session.setAttribute("principal", user);
         }
 
         // 7. 있으면 그 user 정보로 session 만들어주고(자동 로그인) (x)
+
         // 8. 없으면 강제 회원가입 시키고, 그 정보로 session 만들어 주고(자동 로그인)
         if (user == null) {
+            System.out.println("디버그 : 회원정보가 없어서 회원가입 후 로그인을 바로 진행합니다.");
             User newUser = new User(2,
                     "kakao_" + oAuthProfile.getId(),
                     UUID.randomUUID().toString(),
@@ -95,7 +103,7 @@ public class UserController {
             session.setAttribute("principal", newUser);
         }
 
-        return "redirec:/";
+        return "redirect:/";
 
     }
 }
