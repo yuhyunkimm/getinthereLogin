@@ -19,7 +19,12 @@ public class UserStore {
                         "kakao"));
     }
 
-    public User findByUsername(String username) {
+    public static void save(User user) {
+        userList.add(user);
+
+    }
+
+    public static User findByUsername(String username) {
         // User findUser = userList.stream().filter((user)->
         // user.getUsername().equals(username)).findFirst().orElseThrow(); //filter 한건만
         // 조회

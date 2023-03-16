@@ -1,5 +1,9 @@
 package shop.mtcoding.getinthere.controller;
 
+import java.util.UUID;
+
+import javax.servlet.http.HttpSession;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,12 +20,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 
+import lombok.RequiredArgsConstructor;
 import shop.mtcoding.getinthere.dto.OAuthProfile;
 import shop.mtcoding.getinthere.dto.TockenProperties;
+import shop.mtcoding.getinthere.model.User;
 import shop.mtcoding.getinthere.util.Fetch;
+import shop.mtcoding.getinthere.util.UserStore;
 
+@RequiredArgsConstructor
 @Controller
 public class UserController {
+
+    private final HttpSession session;
 
     @GetMapping("/loginForm")
     public String loginForm() {
@@ -29,11 +39,11 @@ public class UserController {
     }
 
     @GetMapping("/callback")
-    public @ResponseBody <T> String callback(String code) throws JsonProcessingException {
+    public <T> String callback(String code) throws JsonProcessingException {
 
         // 1. code 값 존재 유무 확인
         if (code == null || code.isEmpty()) {
-            return "bad request";
+            return "redirect:/loginForm";
         }
         // 2. code 값을 카카오에게 전달(재인증을 위해) -> access token 받기
         // 카카오 문서 확인하기(Request/Response Parameter 문서를 보고 넣어 주기)
@@ -64,15 +74,28 @@ public class UserController {
         ResponseEntity<String> tokenEntity = Fetch.kakao("https://kapi.kakao.com/v2/user/me", HttpMethod.POST,
                 tockenProperties.getAccessToken());
         OAuthProfile oAuthProfile = mapper.readValue(tokenEntity.getBody(), OAuthProfile.class);
+
         // 5. access token으로 email 정보 받기 (ex>ssar@gmail.com / pwUUID로)
+        User user = UserStore.findByUsername("kakao_" + oAuthProfile.getId());
 
         // 6. 해당 email로 회원가입되어 있는 user 정보가 있는지 DB 조회 (x)
+        if (user != null) {
+            session.setAttribute("principal", user);
+        }
 
         // 7. 있으면 그 user 정보로 session 만들어주고(자동 로그인) (x)
-
         // 8. 없으면 강제 회원가입 시키고, 그 정보로 session 만들어 주고(자동 로그인)
+        if (user == null) {
+            User newUser = new User(2,
+                    "kakao_" + oAuthProfile.getId(),
+                    UUID.randomUUID().toString(),
+                    oAuthProfile.getKaKaoAccount().getEmail(),
+                    "kakao");
+            UserStore.save(newUser);
+            session.setAttribute("principal", newUser);
+        }
 
-        return tokenEntity.getBody();
+        return "redirec:/";
 
     }
 }
