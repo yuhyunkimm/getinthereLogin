@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class OAuthProfile {
+    public static Class classO;
     private Long id;
     @JsonProperty("connected_at")
     private String connectedAt;

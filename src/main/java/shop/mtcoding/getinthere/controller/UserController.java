@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 
+import shop.mtcoding.getinthere.dto.OAuthProfile;
 import shop.mtcoding.getinthere.dto.TockenProperties;
 import shop.mtcoding.getinthere.util.Fetch;
 
@@ -62,7 +63,7 @@ public class UserController {
         // 4. access token을 파싱 하고
         ResponseEntity<String> tokenEntity = Fetch.kakao("https://kapi.kakao.com/v2/user/me", HttpMethod.POST,
                 tockenProperties.getAccessToken());
-
+        OAuthProfile oAuthProfile = mapper.readValue(tokenEntity.getBody(), OAuthProfile.class);
         // 5. access token으로 email 정보 받기 (ex>ssar@gmail.com / pwUUID로)
 
         // 6. 해당 email로 회원가입되어 있는 user 정보가 있는지 DB 조회 (x)
